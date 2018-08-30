@@ -1,0 +1,40 @@
+SELECT c.[Country/Region], c.[Calendar Day], c.[Account No. for Customer],c.[Customer Name Local Language],c.[Country/Region Sold to],
+       c.[Sales Office],c.[Name of Sales Employee],c.[IC0 Industry],c.[IC1 Vertical Industry],c.[IC5 Focus Industry],
+       c.[Postal Code],c.[Customer Name in English],c.[Customer Name in English 2],c.[City in English],c.[Order Number],
+       c.[Invoice no.],c.[Document Type],c.[Material Description],c.[Order Code],c.[Product Group (MD)],c.[Product Area (MD)],
+       c.[IO Gross (SC)],c.[IO qty (Base Unit)],c.[SL Gross (SC)],c.[SL qty (Base Unit)],c.[New Product],e.[Rate],
+       CONVERT(decimal(18,2),c.[IO Gross (SC)]/e.[Rate]) AS "IO Gross (GC)" ,CONVERT(decimal(18,2),c.[SL Gross (SC)]/e.[Rate]) AS "SL Gross (GC)",
+       ISNULL(c.[Total GLP (SL)],0) AS "Total GLP (SL)", CASE WHEN c.[Total GLP (SL)] > 0 THEN 'Yes' ELSE 'No' END AS "Has Total GLP (SL)"
+FROM       
+    (SELECT d.[Country/Region], d.[Calendar Day], d.[Account No. for Customer],d.[Customer Name Local Language],d.[Country/Region Sold to],
+                     d.[Sales Office],d.[Name of Sales Employee],d.[IC0 Industry],d.[IC1 Vertical Industry],d.[IC5 Focus Industry],
+                     d.[Postal Code],d.[Customer Name in English],d.[Customer Name in English 2],d.[City in English],d.[Order Number],
+                     d.[Invoice no.],d.[Document Type],d.[Material Description],d.[Order Code],d.[Product Group (MD)],d.[Product Area (MD)],
+                     d.[IO Gross (SC)],d.[IO qty (Base Unit)],d.[SL Gross (SC)],d.[SL qty (Base Unit)],
+                     (CASE WHEN m.[New Product]= 'New' THEN 'NEW' ELSE ' ' END) AS "New Product",  
+                     CONVERT(decimal(18,2),m.[GLP in Euro] * d.[SL qty (Base Unit)]) AS "Total GLP (SL)"
+    FROM
+       (SELECT [Country/Region],CONVERT(datetime,[Calendar Day],103) AS "Calendar day",[Account No. for Customer],[Customer Name Local Language],[Country/Region Sold to],
+                            [Sales Office],[Name of Sales Employee],[IC0 Industry],[IC1 Vertical Industry],[IC5 Focus Industry],
+                            [Postal Code],[Customer Name in English],[Customer Name in English 2],[City in English],[Order Number],
+                            [Invoice no.],[Document Type],[Material Description],[Order Code],[Product Group (MD)],[Product Area (MD)],
+                            [IO Gross (SC)],[IO qty (Base Unit)],[SL Gross (SC)],[SL qty (Base Unit)]
+
+           FROM [BLF_DataCollection].[dbo].[blf_ForeignOrder]
+         
+           UNION ALL
+
+           (SELECT [Country/Region] = 'China',CONVERT(datetime,o.[Calendar Day],103) AS "Calendar day",CONVERT(nvarchar,O.[SAP No.]) AS "Account No. for Customer", a.[Customer Name] AS "Customer Name Local Language",[Country/Region Sold to] ='China',
+                     a.[Area Sales Office] AS "Sales Office", a.[Sales Engineer] AS "Name of Sales Employee", a.[Industry Code] AS "IC0 Industry",a.[Industry Code1] AS "IC1 Vertical Industry", a.[Industry Code5] AS "IC5 Focus Industry",
+                     a.[Postal Code],a.[Customer English Name] AS "Customer Name in English",a.[Customer English Name2] AS "Customer Name in English 2", a.[City In English], o.[Order No.] AS "Order Number",
+                     [Invoice no.] ='',[Document Type] ='', o.Material AS "Material Description",o.[Order Code],o.[Product Group] AS "Product Group (MD)",o.[Product Area] AS "Product Area (MD)",
+                     o.[IO netprc SD(SC)] AS "IO Gross (SC)", o.[IO qty] AS "IO qty (Base Unit)", o.[SL netprc SD (SC)] AS "SL Gross (SC)", o.[SL qty] AS "SL qty (Base Unit)"
+
+              FROM [BLF_DataCollection].[dbo].blf_Order o
+
+              LEFT JOIN [BLF_DataCollection].[dbo].blf_Account a
+              ON o.[SAP No.] = a.[SAP No]
+              WHERE o.Year >= 2016)) d  
+    LEFT JOIN [BLF_DataCollection].[dbo].blf_MaterialPrice m ON d.[Material Description] = m.Material) c
+LEFT JOIN [BLF_DataCollection].[dbo].blf_ExchangeRates e
+ON c.[Country/Region] = e.[Country/Region]

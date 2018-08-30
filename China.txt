@@ -1,0 +1,39 @@
+SELECT distinct  b."Id",b."SAP NO.",b."Customer Name",b."Customer English Name", b."Customer Classification",
+                        b."Sale Office",b."Region" ,b."Sales Engineer", b."O/E/D",
+                        b."Industry Code",b."Industry Code1",b."CustomerType",b."Order No.", 
+                         b."Order Item No.",b.Material, b."Material ID", b."Order Code",b."PlanGrp.1(MD)", b."PlanGrp.1(MD) ID",
+                        b."PlanGrp.2(MD)", b."PlanGrp.2(MD) ID",b."IO netprc SD(SC)", b."SL netprc SD (SC)", b."SL qty", b."IO qty",
+                        b."IO Created Year", b."Calendar Day",b."Calendar Week",b."Year",b."Campaign_C28",b."Campaign_C26",b."Campaign_C15",
+                        b."Campaign_C4",b."Payment terms",b."City",b."CreatedAt",
+                        b."Figure Booking",b."CRMProjectID",b."ProjectName",b."ApplicantSalesOffice",b."ApplicantSalesEngineer",b."EndUserName",
+                        b."SalesEngineerByEndUer",b."SalesOfficeByEndUser",b."SalesRegionByEndUser",b."Product Area",b."Product Group",b."Companies To Verify",
+                        blf_MaterialPrice."CLP in CNY",blf_MaterialPrice."GLP in Euro",b."Operating Organization",b."Industry Code3",b."Industry Code4",b."Industry Code5",
+                        b."Status",(CASE WHEN blf_MaterialPrice."New Product"= 'New' THEN 'NEW' ELSE ' ' END) AS "New Product" 
+FROM
+            (SELECT a."Id",a."SAP NO.",blf_Account."Customer Name",blf_Account."Customer English Name", blf_Account."Cust.Class" as "Customer Classification",
+                           blf_Account."Area Sales Office" as "Sale Office",blf_Account."Region" ,blf_Account."Sales Engineer" as "Sales Engineer", blf_Account."O/E/D",
+                           blf_Account."Industry Code",blf_Account."Industry Code1",blf_Account."Customer Type" as "CustomerType",a."Order No.", 
+                           a."Order Item No.",a.Material, a."Material ID", a."Order Code",a."PlanGrp.1(MD)", a."PlanGrp.1(MD) ID",
+                           a."PlanGrp.2(MD)", a."PlanGrp.2(MD) ID",a."IO netprc SD(SC)", a."SL netprc SD (SC)", a."SL qty", a."IO qty",
+                           a."IO Created Year", a."Calendar Day",a."Calendar Week",a."Year",a."Campaign_C28",a."Campaign_C26",a."Campaign_C15",
+                           a."Campaign_C4",blf_Account."Payment terms",blf_Account."City",blf_Account."Created" as "CreatedAt",
+                           a."Figure Booking",a."CRMProjectID",a."ProjectName",a."ApplicantSalesOffice",a."ApplicantSalesEngineer",a."EndUserName",
+                           a."SalesEngineerByEndUer",a."SalesOfficeByEndUser",a."SalesRegionByEndUser",a."Product Area",a."Product Group",
+                           blf_Account."Companies To Verify",blf_Account."Operating Organization",blf_Account."Industry Code3",blf_Account."Industry Code4",blf_Account."Industry Code5",blf_Account."Status"
+            FROM
+            (SELECT distinct blf_Order."Id", blf_Order."SAP NO.", blf_Order."Order No.", blf_Order."Order Item No.", blf_Order.Material, blf_Order."Material ID", blf_Order."Order Code",
+                                                              blf_Order."PlanGrp.1(MD)", blf_Order."PlanGrp.1(MD) ID", blf_Order."PlanGrp.2(MD)", blf_Order."PlanGrp.2(MD) ID",
+                                                              blf_Order."IO netprc SD(SC)", blf_Order."SL netprc SD (SC)", blf_Order."SL qty", blf_Order."IO qty", blf_Order."IO Created Year",
+                                                              CONVERT(datetime,blf_Order."Calendar Day",103) as "Calendar Day", blf_Order."Calendar Week", blf_Order.Year, blf_Material."Campaign_C28",blf_Material."Campaign_C26",
+                                                              blf_Material."Campaign_C15",blf_Material."Campaign_C4",blf_Order."Payment terms", blf_Order."City", CONVERT(datetime,blf_Order."CreatedAt",103) as "CreatedAt",
+                                                              blf_Order."Figure Booking",blf_Order."CRMProjectID",blf_Order."ProjectName",blf_Order."ApplicantSalesOffice",blf_Order."ApplicantSalesEngineer",
+                                                              blf_Order."EndUserName",blf_Order."SalesEngineerByEndUer",blf_Order."SalesOfficeByEndUser",blf_Order."SalesRegionByEndUser",
+                                                              blf_Order."Product Area",blf_Order."Product Group" 
+                                     
+                                                                                                 FROM BLF_DataCollection.dbo.blf_Order blf_Order
+                                                                                                left join BLF_DataCollection.dbo.blf_Material blf_Material
+                                                            on   blf_Order."Material" = blf_Material."Material Description") a
+            Left join   BLF_DataCollection.dbo.blf_Account blf_Account
+            on a."SAP NO." = blf_Account."SAP NO") b
+left join  BLF_DataCollection.dbo.blf_MaterialPrice blf_MaterialPrice
+on b."Material" = blf_MaterialPrice."Material"
